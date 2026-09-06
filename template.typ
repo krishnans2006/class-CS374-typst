@@ -145,7 +145,6 @@
     - If you use any large language model for any purpose, you #imp[must] include a brief explanation what you used the LLM to do.
 
   - #imp[Standard grading rubrics] for many problem types can be found on the course web page.
-    For example, most problems in Homework #homework will be graded using our standard induction rubric.
     Please familiarize yourself with these rubrics #emph[before] you submit your solutions.
 
   - Each homework will include at least one fully #imp[solved problem], similar to that week's assigned problems. These model solutions show the structure, presentation, and level of detail that we recommend in your homework solutions. (So do the lab solutions.)
