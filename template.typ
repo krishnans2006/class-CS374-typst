@@ -302,7 +302,13 @@
   )
 
   show enum.where(tight: false): set enum(
-    numbering: "(a)",
+    full: true,
+    numbering: (..n) => {
+      let level = n.pos().len() - 1
+      let pattern = ("(a", "i").at(level, default: "i")
+      let suffix = ").".at(level, default: ".")
+      numbering(pattern, n.pos().last()) + suffix
+    },
     spacing: 1.4em,
     indent: 0pt,
     body-indent: 0.45em,
@@ -310,6 +316,13 @@
   )
   show enum.where(tight: false): set par(first-line-indent: 0pt, spacing: 1.4em)
   show enum.where(tight: true): set enum(
+    full: true,
+    numbering: (..n) => {
+      let level = n.pos().len() - 1
+      let pattern = ("(a", "i").at(level, default: "i")
+      let suffix = ").".at(level, default: ".")
+      numbering(pattern, n.pos().last()) + suffix
+    },
     spacing: 0.85em,
     indent: 1.45em,
     body-indent: 0.45em,
