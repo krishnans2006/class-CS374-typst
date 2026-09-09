@@ -107,62 +107,87 @@
   semester: "Fall 2026",
   homework: 1,
   date: datetime(month: 9, day: 1, year: 2026),
-) = page(header: none, numbering: none)[
-  #metadata(none) <hw-cover>
-  #set text(size: 10.5pt)
-  #set par(first-line-indent: 0pt, justify: true)
-  #set list(tight: false)
+  full: false,
+) = [
+  #if full {
+    page(header: none, numbering: none)[
+      #metadata(none) <hw-cover>
+      #set text(size: 10.5pt)
+      #set par(first-line-indent: 0pt, justify: true)
+      #set list(tight: false)
 
-  #align(center)[
-    #text(size: 13pt)[
-      *#course ✦ #semester*
+      #align(center)[
+        #text(size: 13pt)[
+          *#course ✦ #semester*
+        ]
+        #v(0.3em)
+        #text(size: 16pt)[
+          *Homework #homework*
+        ]
+        #v(0.3em)
+        #text(size: 12pt)[
+          Due #date.display("[weekday repr:long], [month repr:long] [day padding:none], [year] at 9pm Central Time")
+        ]
+      ]
+
+      #v(1.25em)
+      #line(length: 100%, stroke: 0.55pt)
+      #v(1em)
+
+      - *Submit your solutions electronically on Gradescope as PDF files.*
+        - Submit a separate PDF file for each numbered problem.
+        - Groups of up to three people can submit joint solutions. #imp[Exactly one] student in each group should upload the solution to Gradescope and #imp[indicate their other group members].
+        - You can find a LaTeX solution template on the course web site, which we encourage you to use to typeset your homework.
+        - If you plan to submit scanned handwritten solutions, please use dark ink (not pencil) on white unlined paper (not notebook or graph paper), and use a scanner or a scanning app to create a high-quality PDF for submission (not a raw photo). We reserve the right to reject submissions that are difficult to read.
+        - If you plan to use a tablet and a note-taking app, please make sure your submitted PDF is broken into standard US-letter sized pages (not a long scroll), and that they don't need excessive zooming to be visible.
+
+      - *You may use any source at your disposal*—paper, human, or electronic—but you #imp[must] cite every source that you use, and you #imp[must] write everything yourself in your own words. You are responsible for all errors in your submissions. In particular:
+        - Every lettered #imp[part] of every submitted solution #imp[must] include a list of all sources and collaborators (or the whole thing if it doesn't have lettered parts.) If you didn't consult any sources or collaborators, write "Sources and collaborators: None".
+        - If you use any large language model for any purpose, you #imp[must] include a brief explanation what you used the LLM to do.
+
+      - #imp[Standard grading rubrics] for many problem types can be found on the course web page.
+        For example, most problems in Homework 1 will be graded using our standard induction rubric.
+        Please familiarize yourself with these rubrics #emph[before] you submit your solutions.
+
+      - Each homework will include at least one fully #imp[solved problem], similar to that week's assigned problems. These model solutions show the structure, presentation, and level of detail that we recommend in your homework solutions. (So do the lab solutions.)
+        #imp[We strongly recommend reading them #emph[before] submitting your homework solutions.]
+
+      #v(0.65em)
+      #line(length: 100%, stroke: 0.55pt)
+      #v(0.65em)
+
+      #align(center)[
+        #text(fill: brick-red, size: 12pt)[*See the course web page for more information.*]
+        #v(0.5em)
+        If you have any questions about these policies, \
+        please don't hesitate to ask in lecture, in labs, in office hours, or online.
+      ]
+
+      #v(0.65em)
+      #line(length: 100%, stroke: 0.55pt)
     ]
-    #v(0.3em)
-    #text(size: 16pt)[
-      *Homework #homework*
+  } else [
+    #metadata(none) <hw-cover>
+    #set text(size: 10.5pt)
+    #set par(first-line-indent: 0pt, justify: true)
+    #set list(tight: false)
+
+    #align(center)[
+      #text(size: 13pt)[
+        *#course ✦ #semester*
+      ]
+      #v(0.3em)
+      #text(size: 16pt)[
+        *Homework #homework*
+      ]
+      #v(0.3em)
+      #text(size: 12pt)[
+        Due #date.display("[weekday repr:long], [month repr:long] [day padding:none], [year] at 9pm Central Time")
+      ]
     ]
-    #v(0.3em)
-    #text(size: 12pt)[
-      Due #date.display(
-        "[weekday repr:long], [month repr:long] [day padding:none], [year] at 9pm Central Time",
-      )
-    ]
+
+    #v(1.25em)
   ]
-
-  #v(1.25em)
-  #line(length: 100%, stroke: 0.55pt)
-  #v(1em)
-
-  - *Submit your solutions electronically on Gradescope as PDF files.*
-    - Submit a separate PDF file for each numbered problem.
-    - Groups of up to three people can submit joint solutions. #imp[Exactly one] student in each group should upload the solution to Gradescope and #imp[indicate their other group members].
-    - You can find a LaTeX solution template on the course web site, which we encourage you to use to typeset your homework.
-    - If you plan to submit scanned handwritten solutions, please use dark ink (not pencil) on white unlined paper (not notebook or graph paper), and use a scanner or a scanning app to create a high-quality PDF for submission (not a raw photo). We reserve the right to reject submissions that are difficult to read.
-    - If you plan to use a tablet and a note-taking app, please make sure your submitted PDF is broken into standard US-letter sized pages (not a long scroll), and that they don't need excessive zooming to be visible.
-
-  - *You may use any source at your disposal*—paper, human, or electronic—but you #imp[must] cite every source that you use, and you #imp[must] write everything yourself in your own words. You are responsible for all errors in your submissions. In particular:
-    - Every lettered #imp[part] of every submitted solution #imp[must] include a list of all sources and collaborators (or the whole thing if it doesn't have lettered parts.) If you didn't consult any sources or collaborators, write "Sources and collaborators: None".
-    - If you use any large language model for any purpose, you #imp[must] include a brief explanation what you used the LLM to do.
-
-  - #imp[Standard grading rubrics] for many problem types can be found on the course web page.
-    Please familiarize yourself with these rubrics #emph[before] you submit your solutions.
-
-  - Each homework will include at least one fully #imp[solved problem], similar to that week's assigned problems. These model solutions show the structure, presentation, and level of detail that we recommend in your homework solutions. (So do the lab solutions.)
-    #imp[We strongly recommend reading them #emph[before] submitting your homework solutions.]
-
-  #v(0.65em)
-  #line(length: 100%, stroke: 0.55pt)
-  #v(0.65em)
-
-  #align(center)[
-    #text(fill: brick-red, size: 12pt)[*See the course web page for more information.*]
-    #v(0.5em)
-    If you have any questions about these policies, \
-    please don't hesitate to ask in lecture, in labs, in office hours, or online.
-  ]
-
-  #v(0.65em)
-  #line(length: 100%, stroke: 0.55pt)
 ]
 
 // Auto-generated references for lemmas, theorems, and problems.
