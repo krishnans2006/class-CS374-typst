@@ -42,6 +42,41 @@
 #let algo-depth = state("algo-depth", 0)
 #let algo-level = state("algo-level", 0)
 
+// Enum nesting outside a solution/proof; subtracted so lists inside restart at (a).
+#let _enum-level-base = state("enum-level-base", none)
+#let _in-scoped-enum = state("in-scoped-enum", false)
+
+#let _enum-numbering(..n) = context {
+  let nums = n.pos()
+  let in-scoped = _in-scoped-enum.get()
+  let base = _enum-level-base.get()
+
+  let level = if in-scoped {
+    if base == none { 0 } else { calc.max(0, nums.len() - 1 - base) }
+  } else {
+    nums.len() - 1
+  }
+
+  let pattern = ("(a", "i").at(level, default: "i")
+  let suffix = ").".at(level, default: ".")
+  let label = numbering(pattern, nums.last()) + suffix
+
+  // Capture parent depth on the first label inside a scoped block.
+  if in-scoped and base == none {
+    _enum-level-base.update(nums.len() - 1) + label
+  } else {
+    label
+  }
+}
+
+#let _with-fresh-enum(body) = {
+  _enum-level-base.update(none)
+  _in-scoped-enum.update(true)
+  body
+  _in-scoped-enum.update(false)
+  _enum-level-base.update(none)
+}
+
 #let _author-names(authors) = authors.map(author => author.first()).join(", ")
 
 #let _running-header(ctx) = {
@@ -328,12 +363,7 @@
 
   show enum.where(tight: false): set enum(
     full: true,
-    numbering: (..n) => {
-      let level = n.pos().len() - 1
-      let pattern = ("(a", "i").at(level, default: "i")
-      let suffix = ").".at(level, default: ".")
-      numbering(pattern, n.pos().last()) + suffix
-    },
+    numbering: _enum-numbering,
     spacing: 1.4em,
     indent: 0pt,
     body-indent: 0.45em,
@@ -342,12 +372,7 @@
   show enum.where(tight: false): set par(first-line-indent: 0pt, spacing: 1.4em)
   show enum.where(tight: true): set enum(
     full: true,
-    numbering: (..n) => {
-      let level = n.pos().len() - 1
-      let pattern = ("(a", "i").at(level, default: "i")
-      let suffix = ").".at(level, default: ".")
-      numbering(pattern, n.pos().last()) + suffix
-    },
+    numbering: _enum-numbering,
     spacing: 0.85em,
     indent: 1.45em,
     body-indent: 0.45em,
@@ -427,46 +452,52 @@
 
 #let solution(body, by: none, qed: true) = context {
   if solutions-flag.get() {
-    _proof-block(
-      "Solution",
-      [
-        #set enum(tight: false, start: 1)
-        #set list(tight: true)
-        #body
-      ],
-      note: by,
-      mark: if qed { $square.filled$ },
-      above: 1.5em,
-      below: 1.9em,
-    )
+    _with-fresh-enum[
+      #_proof-block(
+        "Solution",
+        [
+          #set enum(tight: false, start: 1)
+          #set list(tight: true)
+          #body
+        ],
+        note: by,
+        mark: if qed { $square.filled$ },
+        above: 1.5em,
+        below: 1.9em,
+      )
+    ]
   }
 }
 
 #let solution-box(body, by: none, qed: true) = context {
   if solutions-flag.get() {
-    _proof-block(
-      "Solution",
-      [
-        #set enum(tight: false, start: 1)
-        #set list(tight: true)
-        #body
-      ],
-      note: by,
-      mark: if qed { $square.filled$ },
-      stroke: 1.25pt + olive-green,
-      fill: rgb("#FFFEF7"),
-      above: 0.45em,
-      below: 0.35em,
-    )
+    _with-fresh-enum[
+      #_proof-block(
+        "Solution",
+        [
+          #set enum(tight: false, start: 1)
+          #set list(tight: true)
+          #body
+        ],
+        note: by,
+        mark: if qed { $square.filled$ },
+        stroke: 1.25pt + olive-green,
+        fill: rgb("#FFFEF7"),
+        above: 0.45em,
+        below: 0.35em,
+      )
+    ]
   }
 }
 
 #let proof(body, of: none, qed: true) = {
-  _proof-block(
-    if of == none { "Proof" } else { "Proof of " + str(of) },
-    body,
-    mark: if qed { $square$ },
-  )
+  _with-fresh-enum[
+    #_proof-block(
+      if of == none { "Proof" } else { "Proof of " + str(of) },
+      body,
+      mark: if qed { $square$ },
+    )
+  ]
 }
 
 #let sources(body) = {
