@@ -571,25 +571,29 @@
 }
 
 // Increase/decrease indentation for following lines inside #algo (like LaTeX \+ / \-).
-#let indent = context {
+#let indent = [#context {
   if algo-depth.get() > 0 {
     algo-level.update(level => level + 1)
   }
-}
+}<algo-marker>]
 
-#let outdent = context {
+#let outdent = [#context {
   if algo-depth.get() > 0 {
     algo-level.update(level => calc.max(0, level - 1))
   }
-}
+}<algo-marker>]
 
-#let _algo-is-layout-marker(elem) = repr(elem).starts-with("context(")
-#let _algo-is-smallcaps(elem) = repr(elem).starts-with("smallcaps(")
-#let _algo-is-equation(elem) = repr(elem).starts-with("equation(")
+#let _algo-is-marker(elem) = (
+  (elem.has("label") and elem.label == <algo-marker>)
+    or repr(elem.func()) == "context"
+)
+#let _algo-is-smallcaps(elem) = elem.func() == smallcaps
+#let _algo-is-equation(elem) = elem.func() == math.equation
+#let _algo-is-comment(elem) = (
+  elem.has("label") and elem.label in (<algo-comment>, <comment>)
+)
 
-#let _algo-needs-space(prev, next) = {
-  not _algo-is-layout-marker(next)
-}
+#let _algo-needs-space(prev, next) = not _algo-is-marker(next)
 
 #let _algo-join-children(children) = {
   let merged = ()
@@ -627,65 +631,83 @@
   result
 }
 
+#let _algo-process-line(line) = {
+  if line.all(c => c == [ ]) {
+    return (code: [], comment: none)
+  }
+
+  let comment-idx = line.position(_algo-is-comment)
+  if comment-idx == none {
+    return (code: _algo-join-children(line), comment: none)
+  }
+
+  let before = line.slice(0, comment-idx)
+  while before.len() > 0 and (before.last() == [ ] or before.last().func() == h) {
+    let _ = before.pop()
+  }
+
+  let markers = line.slice(comment-idx + 1).filter(_algo-is-marker)
+  (
+    code: _algo-join-children(before + markers),
+    comment: line.at(comment-idx),
+  )
+}
+
+#let _split-lines(children) = {
+  let lines = ((),)
+  for child in children {
+    if child == linebreak() or child == parbreak() {
+      lines.push(())
+    } else {
+      lines.last().push(child)
+    }
+  }
+  lines
+}
+
 #let _algo-get-lines(body) = {
   if not body.has("children") {
-    return (body,)
+    return (_algo-process-line((body,)),)
   }
 
-  let joined-children = ()
-  let segment = ()
-  for child in body.children {
-    if child == linebreak() or child == parbreak() {
-      if segment.len() > 0 {
-        joined-children.push(_algo-join-children(segment))
-        segment = ()
-      }
-      joined-children.push(child)
-    } else {
-      segment.push(child)
-    }
-  }
-  if segment.len() > 0 {
-    joined-children.push(_algo-join-children(segment))
-  }
+  let lines = _split-lines(body.children).map(_algo-process-line)
 
-  let text-and-breaks = joined-children.filter(
-    elem => elem != [ ] and elem != parbreak(),
-  )
-
-  let lines = ()
-  let line-parts = []
-  let num-linebreaks = 0
-  for elem in text-and-breaks {
-    if elem == linebreak() {
-      if line-parts != [] {
-        lines.push(line-parts)
-        line-parts = []
-      }
-      num-linebreaks += 1
-      if num-linebreaks > 1 {
-        lines.push([])
-      }
-    } else {
-      line-parts += elem
-      num-linebreaks = 0
-    }
+  while lines.len() > 0 and lines.first().code == [] and lines.first().comment == none {
+    let _ = lines.remove(0)
   }
-  if line-parts != [] {
-    lines.push(line-parts)
+  while lines.len() > 0 and lines.last().code == [] and lines.last().comment == none {
+    let _ = lines.pop()
   }
 
   lines
 }
 
-#let _algo-render-lines(lines, indent-size, line-leading) = {
-  stack(
-    spacing: line-leading,
+#let _algo-render-lines(lines, indent-size, line-leading, comment-gutter: 2em) = {
+  let has-comments = lines.any(line => line.comment != none)
+  if not has-comments {
+    return stack(
+      spacing: line-leading,
+      ..lines.map(line => context {
+        pad(left: algo-level.get() * indent-size)[#line.code]
+      }),
+    )
+  }
+
+  grid(
+    columns: (auto, auto),
+    column-gutter: comment-gutter,
+    row-gutter: line-leading,
+    align: (left, left),
     ..lines.map(line => {
-      context {
-        pad(left: algo-level.get() * indent-size)[#line]
+      let code-cell = context {
+        pad(left: algo-level.get() * indent-size)[#line.code]
       }
-    }),
+      if line.comment == none {
+        (grid.cell(colspan: 2, code-cell),)
+      } else {
+        (code-cell, line.comment)
+      }
+    }).flatten(),
   )
 }
 
@@ -693,6 +715,7 @@
   body,
   indent-size: 1em,
   line-leading: 0.65em,
+  comment-gutter: 2em,
 ) = [
   #algo-depth.update(depth => depth + 1)
   #algo-level.update(_ => 0)
@@ -707,7 +730,12 @@
       #set align(left)
       #set text(size: 9pt)
       #set par(first-line-indent: 0pt, leading: line-leading, spacing: 0pt)
-      #_algo-render-lines(_algo-get-lines(body), indent-size, line-leading)
+      #_algo-render-lines(
+        _algo-get-lines(body),
+        indent-size,
+        line-leading,
+        comment-gutter: comment-gutter,
+      )
     ]
   ]
   #algo-depth.update(depth => depth - 1)
@@ -724,12 +752,12 @@
   #text(fill: pine-green)[#imp[#ul[Practice only. Do not submit solutions.]]]
 ]
 
-#let comment(body) = text(
+#let comment(body) = [#text(
   font: "Noto Sans",
   style: "italic",
   fill: brick-red,
   [⟪#body⟫],
-)
+)<algo-comment>]
 
 // Math-mode function names: #let flipodds = func("flipodds"), then flipodds(w) in math.
 // For the bare name, use flipodds() (e.g. #def flipodds()).
