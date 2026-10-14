@@ -419,10 +419,11 @@
   above: 1.5em,
   below: 0.65em,
   inset: 5pt,
+  par-spacing: 1.4em,
 ) = {
   let content = [
     #set text(font: font, size: size, fill: text-fill)
-    #set par(first-line-indent: 0pt)
+    #set par(first-line-indent: 0pt, spacing: par-spacing)
     *#title#if note != none { [ (#note)] }:* #body
     #if mark != none {
       h(1fr)
