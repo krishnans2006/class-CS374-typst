@@ -496,6 +496,8 @@
       if of == none { "Proof" } else { "Proof of " + str(of) },
       body,
       mark: if qed { $square$ },
+      above: 1em,
+      below: 1em,
     )
   ]
 }
@@ -584,8 +586,7 @@
 }<algo-marker>]
 
 #let _algo-is-marker(elem) = (
-  (elem.has("label") and elem.label == <algo-marker>)
-    or repr(elem.func()) == "context"
+  (elem.has("label") and elem.label == <algo-marker>) or repr(elem.func()) == "context"
 )
 #let _algo-is-smallcaps(elem) = elem.func() == smallcaps
 #let _algo-is-equation(elem) = elem.func() == math.equation
@@ -698,16 +699,18 @@
     column-gutter: comment-gutter,
     row-gutter: line-leading,
     align: (left, left),
-    ..lines.map(line => {
-      let code-cell = context {
-        pad(left: algo-level.get() * indent-size)[#line.code]
-      }
-      if line.comment == none {
-        (grid.cell(colspan: 2, code-cell),)
-      } else {
-        (code-cell, line.comment)
-      }
-    }).flatten(),
+    ..lines
+      .map(line => {
+        let code-cell = context {
+          pad(left: algo-level.get() * indent-size)[#line.code]
+        }
+        if line.comment == none {
+          (grid.cell(colspan: 2, code-cell),)
+        } else {
+          (code-cell, line.comment)
+        }
+      })
+      .flatten(),
   )
 }
 
@@ -759,6 +762,9 @@
   [⟪#body⟫],
 )<algo-comment>]
 
+// Join math args with a math comma (instead of text ", ")
+#let math-args(args) = args.pos().join(math.class("punctuation", [,]))
+
 // Math-mode function names: #let flipodds = func("flipodds"), then flipodds(w) in math.
 // For the bare name, use flipodds() (e.g. #def flipodds()).
 #let func(name) = {
@@ -767,7 +773,7 @@
     if body != none and body != [] {
       $italic(#name)(#body)$
     } else if args.pos().len() > 0 {
-      $italic(#name)(#args.pos().first())$
+      $italic(#name)(#math-args(args))$
     } else {
       glyph
     }
